@@ -64,6 +64,30 @@ gh run view <run-id> --log
 
 GitHub cron is best-effort and can lag a few minutes under load.
 
+### Weekly heartbeat
+
+[.github/workflows/heartbeat.yml](.github/workflows/heartbeat.yml) emails a
+"still watching" digest every Monday (~7am PT) via [heartbeat.mjs](heartbeat.mjs):
+how many checks ran in the last 7 days, the most recent check time, and the
+current cheapest price per class. So you know it's alive even when nothing
+triggers an alert.
+
+```bash
+gh workflow run heartbeat.yml      # send one now
+```
+
+### Querying the data (Supabase)
+
+Two convenience views (project *Ranked Voting*):
+
+- `stubhub_latest_prices` — latest price per ticket class.
+- `stubhub_daily_low` — daily min/max/avg per class (good for charting a trend).
+
+```sql
+select * from stubhub_latest_prices order by min_price;
+select * from stubhub_daily_low where class_name = 'Hospitality' order by day_pt;
+```
+
 ### Local (optional) — launchd
 
 If you'd rather run it on a Mac instead, a LaunchAgent works too (drop the
