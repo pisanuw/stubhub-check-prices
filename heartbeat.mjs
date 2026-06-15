@@ -1,4 +1,4 @@
-// Weekly "still alive" digest. Reads the latest prices + run freshness from
+// Daily "still alive" digest. Reads the latest prices + run freshness from
 // Supabase and emails a summary, so you know the watcher is running even when
 // nothing has triggered an alert. Run by .github/workflows/heartbeat.yml.
 
@@ -20,10 +20,10 @@ const get = async (path) => {
 };
 
 const latest = await get("stubhub_latest_prices?select=*&order=min_price.asc");
-const weekAgo = new Date(Date.now() - 7 * 864e5).toISOString();
-// One row per run for a single stable class -> counts successful runs this week.
+const dayAgo = new Date(Date.now() - 864e5).toISOString();
+// One row per run for a single stable class -> counts successful runs in 24h.
 const runs = await get(
-  `stubhub_price_snapshots?select=captured_at&class_name=eq.Upper%20300-Level&captured_at=gte.${weekAgo}`
+  `stubhub_price_snapshots?select=captured_at&class_name=eq.Upper%20300-Level&captured_at=gte.${dayAgo}`
 );
 
 const lastRun = latest.length
@@ -32,7 +32,7 @@ const lastRun = latest.length
 
 const lines = [];
 lines.push(`The StubHub watcher is running.`);
-lines.push(`Successful checks in the last 7 days: ${runs.length}`);
+lines.push(`Successful checks in the last 24 hours: ${runs.length}`);
 lines.push(`Most recent check: ${lastRun}`);
 lines.push("");
 lines.push("Current cheapest per ticket class (per ticket, all-in):");
@@ -45,12 +45,12 @@ const text = lines.join("\n");
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 const html = [
   `<p><b>The StubHub watcher is running.</b></p>`,
-  `<p>Successful checks in the last 7 days: <b>${runs.length}</b><br>Most recent check: ${esc(lastRun)}</p>`,
+  `<p>Successful checks in the last 24 hours: <b>${runs.length}</b><br>Most recent check: ${esc(lastRun)}</p>`,
   `<table cellpadding="6" style="border-collapse:collapse">`,
   `<tr><th align="left">Class</th><th align="right">From /tkt</th><th align="right">Listings</th></tr>`,
   ...latest.map((r) => `<tr><td>${esc(r.class_name)}</td><td align="right">${usd(r.min_price)}</td><td align="right">${r.listings}</td></tr>`),
   `</table>`,
 ].join("\n");
 
-const r = await sendEmail({ subject: "StubHub watcher — weekly heartbeat", text, html });
+const r = await sendEmail({ subject: "StubHub watcher — daily heartbeat", text, html });
 console.log(`heartbeat sent ${r.dryRun ? "(DRY RUN)" : "id=" + (r.id || "?")}; runs7d=${runs.length}, classes=${latest.length}`);

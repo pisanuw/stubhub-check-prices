@@ -1,9 +1,9 @@
 name: heartbeat
 
-# Weekly "still alive" digest email. Mondays 14:00 UTC (~7am PT).
+# Daily "still alive" digest email. 14:00 UTC (~7am PT).
 on:
   schedule:
-    - cron: "0 14 * * 1"
+    - cron: "0 14 * * *"
   workflow_dispatch:
 
 jobs:

@@ -64,11 +64,11 @@ gh run view <run-id> --log
 
 GitHub cron is best-effort and can lag a few minutes under load.
 
-### Weekly heartbeat
+### Daily heartbeat
 
 [.github/workflows/heartbeat.yml](.github/workflows/heartbeat.yml) emails a
-"still watching" digest every Monday (~7am PT) via [heartbeat.mjs](heartbeat.mjs):
-how many checks ran in the last 7 days, the most recent check time, and the
+"still watching" digest every day (~7am PT) via [heartbeat.mjs](heartbeat.mjs):
+how many checks ran in the last 24 hours, the most recent check time, and the
 current cheapest price per class. So you know it's alive even when nothing
 triggers an alert.
 
