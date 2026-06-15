@@ -88,6 +88,21 @@ select * from stubhub_latest_prices order by min_price;
 select * from stubhub_daily_low where class_name = 'Hospitality' order by day_pt;
 ```
 
+From the terminal, [query.mjs](query.mjs) wraps the common reads (uses
+`STUBHUB_SUPABASE_URL` / `STUBHUB_SUPABASE_KEY` from `.env`):
+
+```bash
+npm run query latest          # cheapest per class right now
+npm run query daily Hospitality   # daily low/avg/max for one class
+npm run query runs 24         # how many checks ran in last 24h + last time
+npm run query watch           # are Champions Club / Trophy Lounge / FIFA Pavilion listed yet
+npm run query raw "stubhub_price_snapshots?select=*&limit=5"   # any PostgREST query
+```
+
+> Note: this project uses `STUBHUB_SUPABASE_*` env vars (not the bare
+> `SUPABASE_*`) so a shared `.env` pointing at another Supabase project can't
+> send writes/queries to the wrong database.
+
 ### Local (optional) — launchd
 
 If you'd rather run it on a Mac instead, a LaunchAgent works too (drop the

@@ -8,9 +8,9 @@ import { usd } from "./parse.mjs";
 
 try { process.loadEnvFile(join(process.cwd(), ".env")); } catch { /* no .env */ }
 
-const URL = process.env.SUPABASE_URL;
-const KEY = process.env.SUPABASE_KEY;
-if (!URL || !KEY) { console.error("SUPABASE_URL/KEY required"); process.exit(1); }
+const URL = process.env.STUBHUB_SUPABASE_URL;
+const KEY = process.env.STUBHUB_SUPABASE_KEY;
+if (!URL || !KEY) { console.error("STUBHUB_SUPABASE_URL/KEY required"); process.exit(1); }
 
 const h = { apikey: KEY, Authorization: `Bearer ${KEY}` };
 const get = async (path) => {
@@ -53,4 +53,4 @@ const html = [
 ].join("\n");
 
 const r = await sendEmail({ subject: "StubHub watcher — daily heartbeat", text, html });
-console.log(`heartbeat sent ${r.dryRun ? "(DRY RUN)" : "id=" + (r.id || "?")}; runs7d=${runs.length}, classes=${latest.length}`);
+console.log(`heartbeat sent ${r.dryRun ? "(DRY RUN)" : "id=" + (r.id || "?")}; runs24h=${runs.length}, classes=${latest.length}`);

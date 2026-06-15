@@ -21,6 +21,6 @@ jobs:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
           ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          STUBHUB_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          STUBHUB_SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         run: node heartbeat.mjs

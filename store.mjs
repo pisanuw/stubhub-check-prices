@@ -5,8 +5,10 @@
 import { readFile, writeFile, appendFile } from "fs/promises";
 import { existsSync } from "fs";
 
-const URL = process.env.SUPABASE_URL;
-const KEY = process.env.SUPABASE_KEY;
+// Project-specific names so we never collide with other Supabase projects that
+// may share the same .env (e.g. a bare SUPABASE_URL pointing elsewhere).
+const URL = process.env.STUBHUB_SUPABASE_URL;
+const KEY = process.env.STUBHUB_SUPABASE_KEY;
 export const usingSupabase = !!(URL && KEY);
 
 const STATE_KEY = "alert-state";

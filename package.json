@@ -7,6 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "login": "node seed-login.mjs",
     "scrape": "node scrape.mjs",
+    "query": "node query.mjs",
+    "heartbeat": "node heartbeat.mjs",
     "test-email": "node -e \"process.loadEnvFile('.env'); import('./notify.mjs').then(m=>m.sendEmail({subject:'StubHub watcher test',text:'Pipeline OK'})).then(r=>console.log('sent',r)).catch(e=>{console.error(e.message);process.exit(1)})\""
   },
   "keywords": [],
