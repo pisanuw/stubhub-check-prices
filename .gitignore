@@ -1,0 +1,8 @@
+node_modules/
+.chrome-profile/
+.env
+*.log
+prices.csv
+sections.csv
+section-names.json
+alert-state.json

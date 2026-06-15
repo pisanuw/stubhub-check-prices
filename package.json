@@ -1,0 +1,19 @@
+{
+  "name": "stubhub",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "login": "node seed-login.mjs",
+    "scrape": "node scrape.mjs",
+    "test-email": "node -e \"process.loadEnvFile('.env'); import('./notify.mjs').then(m=>m.sendEmail({subject:'StubHub watcher test',text:'Pipeline OK'})).then(r=>console.log('sent',r)).catch(e=>{console.error(e.message);process.exit(1)})\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "playwright": "^1.60.0"
+  }
+}
