@@ -38,17 +38,36 @@ npm run scrape          # headless
 HEADLESS=0 npm run scrape   # visible browser, if StubHub ever challenges it
 ```
 
-## Scheduling (every 15 min, launchd)
+## Scheduling
 
-Installed as `~/Library/LaunchAgents/com.pisan.stubhub-prices.plist`.
+### Cloud (production) — GitHub Actions + Supabase
+
+Runs every 15 min in GitHub Actions ([.github/workflows/check-prices.yml](.github/workflows/check-prices.yml)),
+so your laptop can be off. The runner installs Chromium, runs `scrape.mjs` with
+`CHROME_CHANNEL=chromium`, and persists to Supabase.
+
+- **State + history live in Supabase** (project `Ranked Voting`): tables
+  `stubhub_app_state` (alert state JSON) and `stubhub_price_snapshots`
+  (per-class history). Activated automatically when `SUPABASE_URL` +
+  `SUPABASE_KEY` are present; otherwise the script falls back to local files.
+- **Secrets** (Actions → repo settings): `RESEND_API_KEY`, `FROM_EMAIL`,
+  `ADMIN_EMAIL`, `SUPABASE_URL`, `SUPABASE_KEY`.
+- The repo is **public** so Actions minutes are free at this cadence.
+- `smoke.yml` is a manual workflow that checks StubHub still serves data to a
+  cloud IP (no secrets/email).
 
 ```bash
-launchctl load   ~/Library/LaunchAgents/com.pisan.stubhub-prices.plist   # start
-launchctl unload ~/Library/LaunchAgents/com.pisan.stubhub-prices.plist   # stop
-launchctl list | grep stubhub                                            # status
+gh workflow run check-prices.yml      # run once now
+gh run list --workflow=check-prices.yml
+gh run view <run-id> --log
 ```
 
-Output of scheduled runs also goes to `launchd.out.log` / `launchd.err.log`.
+GitHub cron is best-effort and can lag a few minutes under load.
+
+### Local (optional) — launchd
+
+If you'd rather run it on a Mac instead, a LaunchAgent works too (drop the
+Supabase env so it uses local files). Not installed by default anymore.
 
 ## Watching a specific ticket class
 

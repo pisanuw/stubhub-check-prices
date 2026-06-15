@@ -14,3 +14,9 @@ Format: `YYYY-MM-DD [type] description` (max 200 chars). Types: decision, plan, 
 2026-06-14 [decision] Email alerts: >=20% drop vs previous reading OR new category appears; scope=ALL categories; once-until-reset (re-arm +10% or new lower low). Resend via .env.
 2026-06-14 [code] Added parse.buildCategories (classes+sections+watched notes), alert.mjs (state engine), notify.mjs (Resend). Section names now from venueConfiguration (complete).
 2026-06-14 [code] Wired alerting into scrape.mjs; loads .env via process.loadEnvFile. Tested logic offline + sent live test email OK. Baseline established (95 categories).
+2026-06-14 [decision] Move off laptop to cloud. Chosen: GitHub Actions (cron */15) + Supabase for state/history. Netlify rejected (Playwright fit poor); datacenter-IP block risk flagged.
+2026-06-14 [code] git init + pushed to github.com/pisanuw/stubhub-check-prices. Repo made PUBLIC for free Actions minutes (no secrets in repo).
+2026-06-14 [note] Smoke test confirmed StubHub serves full data to GitHub cloud IP (not blocked). Local IP intermittently blocked now (expected fragility).
+2026-06-14 [code] Added store.mjs (Supabase via PostgREST when SUPABASE_URL/KEY set, else local files), CHROME_CHANNEL env. Supabase schema in "Ranked Voting": stubhub_app_state + stubhub_price_snapshots (RLS, anon policies).
+2026-06-14 [code] Added check-prices.yml (cron */15, secrets) + smoke.yml (manual). Set 5 Action secrets. Verified prod run: 9 class snapshots + baseline state (94 cats) in Supabase.
+2026-06-14 [scope] Decommissioned local launchd agent com.pisan.stubhub-prices (cloud is now source of truth).
