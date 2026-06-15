@@ -20,3 +20,4 @@ Format: `YYYY-MM-DD [type] description` (max 200 chars). Types: decision, plan, 
 2026-06-14 [code] Added store.mjs (Supabase via PostgREST when SUPABASE_URL/KEY set, else local files), CHROME_CHANNEL env. Supabase schema in "Ranked Voting": stubhub_app_state + stubhub_price_snapshots (RLS, anon policies).
 2026-06-14 [code] Added check-prices.yml (cron */15, secrets) + smoke.yml (manual). Set 5 Action secrets. Verified prod run: 9 class snapshots + baseline state (94 cats) in Supabase.
 2026-06-14 [scope] Decommissioned local launchd agent com.pisan.stubhub-prices (cloud is now source of truth).
+2026-06-14 [code] Added Supabase views stubhub_latest_prices + stubhub_daily_low (security_invoker, granted anon). Added weekly heartbeat (heartbeat.mjs + heartbeat.yml, Mon 14:00 UTC); verified real cloud send OK.
