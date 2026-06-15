@@ -53,11 +53,12 @@ function classMatches(c) {
 }
 
 async function main() {
-  const ctx = await chromium.launchPersistentContext(PROFILE_DIR, {
-    channel: "chrome",
-    headless: HEADLESS,
-    viewport: { width: 1400, height: 950 },
-  });
+  // Locally we drive real Google Chrome (channel "chrome"). In CI set
+  // CHROME_CHANNEL=chromium to use Playwright's bundled Chromium instead.
+  const channel = process.env.CHROME_CHANNEL || "chrome";
+  const launchOpts = { headless: HEADLESS, viewport: { width: 1400, height: 950 } };
+  if (channel !== "chromium") launchOpts.channel = channel;
+  const ctx = await chromium.launchPersistentContext(PROFILE_DIR, launchOpts);
   try {
     const page = ctx.pages()[0] ?? (await ctx.newPage());
     const resp = await page.goto(EVENT_URL, {
