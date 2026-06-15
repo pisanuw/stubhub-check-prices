@@ -1,13 +1,9 @@
 name: smoke-test
 
-# Manual + on code push. Proves whether StubHub serves the data to GitHub's
-# datacenter IP (vs. blocking it with a bot challenge). No secrets, no email.
+# Manual only. Proves whether StubHub serves the data to GitHub's datacenter IP
+# (vs. blocking it with a bot challenge). No secrets, no email, no Supabase.
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - ".github/workflows/smoke.yml"
-      - "**.mjs"
 
 jobs:
   smoke:

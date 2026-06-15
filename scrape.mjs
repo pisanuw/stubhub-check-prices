@@ -11,6 +11,7 @@ import { join } from "path";
 import { buildSnapshot, buildCategories } from "./parse.mjs";
 import { evaluate, renderEmail } from "./alert.mjs";
 import { sendEmail } from "./notify.mjs";
+import { loadState, saveState, saveClassSnapshots, usingSupabase } from "./store.mjs";
 import {
   ROOT, EVENT_URL, PROFILE_DIR, CSV_PATH, LOG_PATH, HEADLESS, FILTER, ALERTS,
 } from "./config.mjs";
@@ -79,25 +80,27 @@ async function main() {
 
     const qty = snap.quantity ?? FILTER.quantity ?? 2;
 
-    // ---- write per-class CSV (one row per ticket class per run) ----
-    await appendCsv(
-      CSV_PATH,
-      ["time", "eventId", "ticketClassId", "className", "minPricePerTicket", "totalForQty", "qty", "listings", "tickets"],
-      snap.classes.map((c) => [
-        snap.time, snap.eventId, c.ticketClassId, c.className,
-        c.rawMinPrice, +(c.rawMinPrice * qty).toFixed(2), qty, c.listings, c.tickets,
-      ])
+    // ---- per-class price history (Supabase in cloud, CSV locally) ----
+    await saveClassSnapshots(
+      snap.classes.map((c) => ({
+        captured_at: snap.time, event_id: snap.eventId, ticket_class_id: c.ticketClassId,
+        class_name: c.className, min_price: c.rawMinPrice,
+        total_for_qty: +(c.rawMinPrice * qty).toFixed(2), qty, listings: c.listings, tickets: c.tickets,
+      })),
+      { csvPath: CSV_PATH }
     );
 
-    // ---- write per-section CSV (finer detail) ----
-    await appendCsv(
-      SECTIONS_CSV,
-      ["time", "ticketClassId", "className", "sectionId", "section", "minPricePerTicket", "listings", "tickets", "row", "cheapestListingId"],
-      snap.sections.map((s) => [
-        snap.time, s.ticketClassId, s.className, s.sectionId, s.section,
-        s.rawMinPrice, s.listings, s.tickets, s.rowText, s.cheapestListingId,
-      ])
-    );
+    // ---- per-section CSV (finer detail, local only) ----
+    if (!usingSupabase) {
+      await appendCsv(
+        SECTIONS_CSV,
+        ["time", "ticketClassId", "className", "sectionId", "section", "minPricePerTicket", "listings", "tickets", "row", "cheapestListingId"],
+        snap.sections.map((s) => [
+          snap.time, s.ticketClassId, s.className, s.sectionId, s.section,
+          s.rawMinPrice, s.listings, s.tickets, s.rowText, s.cheapestListingId,
+        ])
+      );
+    }
 
     // ---- alerting (20% drop vs previous reading, or new category) ----
     if (ALERTS.enabled) {
@@ -105,15 +108,14 @@ async function main() {
         snap.eventUrl = EVENT_URL;
         const kinds = new Set(ALERTS.kinds || ["class", "section", "watch"]);
         const categories = buildCategories(snap, ALERTS.watchTerms).filter((c) => kinds.has(c.kind));
-        let state = { initialized: false, cats: {} };
-        if (existsSync(ALERT_STATE)) state = JSON.parse(await readFile(ALERT_STATE, "utf8"));
+        const state = await loadState({ stateFile: ALERT_STATE });
         const firstRun = !state.initialized;
         const events = evaluate(state, categories, {
           dropThreshold: ALERTS.dropThreshold,
           rearmRecovery: ALERTS.rearmRecovery,
           time: snap.time,
         });
-        await writeFile(ALERT_STATE, JSON.stringify(state, null, 0));
+        await saveState(state, { stateFile: ALERT_STATE });
 
         if (firstRun) {
           await log(`  alerts: baseline established for ${categories.length} categories (no email on first run)`);

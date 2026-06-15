@@ -1,0 +1,38 @@
+name: check-prices
+
+# Every 15 minutes (UTC; GitHub cron is best-effort and may lag under load).
+# Also runnable on demand from the Actions tab.
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+# Never let two runs overlap.
+concurrency:
+  group: check-prices
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Check prices + alert
+        env:
+          CHROME_CHANNEL: chromium
+          HEADLESS: "1"
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: node scrape.mjs
+      - name: Show log
+        if: always()
+        run: cat scrape.log 2>/dev/null || echo "(no log)"
