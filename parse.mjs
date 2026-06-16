@@ -107,15 +107,17 @@ export function usd(n) {
 // ticket) or null if not present this run.
 export function buildCategories(snap, watchTerms = []) {
   const cats = new Map();
-  const put = (key, label, price, kind) => {
+  // `cls` = the ticket class this category belongs to (null for watched
+  // named products). Used by alerting to exclude whole classes.
+  const put = (key, label, price, kind, cls = null) => {
     const cur = cats.get(key);
     if (!cur || (price != null && (cur.price == null || price < cur.price)))
-      cats.set(key, { key, label, price, kind });
+      cats.set(key, { key, label, price, kind, cls });
   };
 
-  for (const c of snap.classes) put(`class:${c.className}`, c.className, c.rawMinPrice, "class");
+  for (const c of snap.classes) put(`class:${c.className}`, c.className, c.rawMinPrice, "class", c.className);
   for (const s of snap.sections)
-    put(`sec:${s.className}|${s.section}`, `${s.className} › ${s.section}`, s.rawMinPrice, "section");
+    put(`sec:${s.className}|${s.section}`, `${s.className} › ${s.section}`, s.rawMinPrice, "section", s.className);
 
   // Watched named products: lowest price anywhere the term shows up.
   const classNames = new Set(snap.classes.map((c) => c.className.toLowerCase()));

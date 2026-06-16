@@ -25,3 +25,5 @@ Format: `YYYY-MM-DD [type] description` (max 200 chars). Types: decision, plan, 
 2026-06-14 [code] Added query.mjs (terminal Supabase reads: latest/daily/runs/watch/raw) + npm run query. Namespaced env to STUBHUB_SUPABASE_URL/KEY (shared .env had bare SUPABASE_URL pointing at a different project 'upvoteme'; stubhub tables are in 'Ranked Voting'=VITE_SUPABASE_URL). Workflows map secrets->STUBHUB_ env. Verified cloud run still writes Supabase (9->18 rows).
 
 2026-06-15 [code] Bumped GitHub Actions to clear Node 20 deprecation: checkout@v4->v5, setup-node@v4->v5, node-version 22->24 across check-prices/heartbeat/smoke. upload-artifact still @v4 (no v5 released; will keep warning).
+
+2026-06-16 [code] Alerting (scrape.mjs/check-prices) now ignores 8 classes (Category 1-4, Upper 300/Middle 200/Lower 100-Level, Lower Charter) + their sections via ALERTS.ignoreClasses; buildCategories tags each cat with parent class (cls). Heartbeat unaffected (reads Supabase directly). Only Hospitality + watch products alert now.

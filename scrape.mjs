@@ -107,7 +107,10 @@ async function main() {
       try {
         snap.eventUrl = EVENT_URL;
         const kinds = new Set(ALERTS.kinds || ["class", "section", "watch"]);
-        const categories = buildCategories(snap, ALERTS.watchTerms).filter((c) => kinds.has(c.kind));
+        const ignore = new Set((ALERTS.ignoreClasses || []).map((s) => s.toLowerCase()));
+        const categories = buildCategories(snap, ALERTS.watchTerms)
+          .filter((c) => kinds.has(c.kind))
+          .filter((c) => !(c.cls && ignore.has(c.cls.toLowerCase())));
         const state = await loadState({ stateFile: ALERT_STATE });
         const firstRun = !state.initialized;
         const events = evaluate(state, categories, {

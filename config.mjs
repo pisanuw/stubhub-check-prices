@@ -53,6 +53,15 @@ export const ALERTS = {
   // drop "section": e.g. ["class", "watch"].
   kinds: ["class", "section", "watch"],
 
+  // Classes to EXCLUDE from alerting (scrape.mjs / check-prices workflow only).
+  // Drops both the class category and its section-level children; watched
+  // named products are unaffected. The daily heartbeat reads Supabase directly
+  // and still reports every class, so it ignores this list. Case-insensitive.
+  ignoreClasses: [
+    "Category 1", "Category 2", "Category 3", "Category 4",
+    "Upper 300-Level", "Middle 200-Level", "Lower 100-Level", "Lower Charter",
+  ],
+
   // Named products of special interest. Tracked as their own categories even
   // when they only show up as a section name or a listing note.
   watchTerms: ["Champions Club", "Hospitality", "Trophy Lounge", "FIFA Pavilion", "FIFA Pavillion"],
