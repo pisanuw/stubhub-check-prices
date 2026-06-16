@@ -3,8 +3,8 @@ name: check-prices
 # Every 15 minutes (UTC; GitHub cron is best-effort and may lag under load).
 # Also runnable on demand from the Actions tab.
 on:
-  schedule:
-    - cron: "*/15 * * * *"
+  # schedule:
+  #   - cron: "*/15 * * * *"
   workflow_dispatch:
 
 # Never let two runs overlap.
