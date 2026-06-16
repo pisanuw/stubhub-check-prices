@@ -6,9 +6,12 @@
 - Current scope: Personal, single-event, intentionally fragile. Playwright loads
   the page; prices parsed from the server-rendered `<script id="index-data">`
   JSON blob. Email alerts (Resend) on >=20% price drop vs previous reading OR a
-  category appearing for the first time, across ALL categories (classes +
-  sections + watched named products: Champions Club, Hospitality, Trophy Lounge,
-  FIFA Pavilion).
+  category appearing for the first time. Alerting scope is now narrowed:
+  ALERTS.ignoreClasses excludes 8 classes (Category 1-4, Upper 300-Level,
+  Middle 200-Level, Lower 100-Level, Lower Charter) and their sections, so only
+  Hospitality + watched named products (Champions Club, Hospitality, Trophy
+  Lounge, FIFA Pavilion) trigger alerts. The daily heartbeat is unaffected and
+  still reports every class.
 - Deployment: GitHub Actions (public repo pisanuw/stubhub-check-prices) cron
   */15; state + per-class history in Supabase project "Ranked Voting" (tables
   stubhub_app_state, stubhub_price_snapshots). CHROME_CHANNEL=chromium in CI.
@@ -22,8 +25,10 @@
   - Section names from venueMapData.venueConfiguration (complete); only ~40
     listings carry per-listing notes, so note-only products (Champions Club)
     have partial price coverage.
-  - Alerts: drop baseline = previous reading; scope = all categories; re-send =
-    once until reset (re-arm on +10% recovery or new lower low). Resend email
-    noreply@pisan.me -> yusuf.pisan@gmail.com (from .env). State in alert-state.json.
+  - Alerts: drop baseline = previous reading; scope = all categories EXCEPT the
+    8 in ALERTS.ignoreClasses (only Hospitality + watch products alert); re-send
+    = once until reset (re-arm on +10% recovery or new lower low). Heartbeat
+    ignores the exclude list (reports all classes). Resend email noreply@pisan.me
+    -> yusuf.pisan@gmail.com (from .env). State in alert-state.json.
 - Non-goals: Auto-purchasing tickets; multi-event support; robustness against
   StubHub redesigns; full per-listing detail beyond the ~40 the page embeds.
