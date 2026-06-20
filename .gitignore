@@ -6,3 +6,4 @@ prices.csv
 sections.csv
 section-names.json
 alert-state.json
+alert-state.*.json

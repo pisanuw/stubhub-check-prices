@@ -1,18 +1,23 @@
 // Configuration for the StubHub price checker.
-// Fragile-on-purpose: tuned for one specific event.
+// Fragile-on-purpose, but now multi-event: the list of web sites to monitor
+// lives in events.json so it can be changed without touching code.
 
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import { readFileSync } from "fs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export const ROOT = __dirname;
 
-// The event we are watching.
-export const EVENT_URL =
-  "https://www.stubhub.com/world-cup-seattle-tickets-6-19-2026/event/153020544/?quantity=2";
-
-export const EVENT_ID = "153020544";
+// ---- Events to monitor --------------------------------------------------
+// Source of truth is events.json (edit that file to add/remove/switch events).
+// Each event: { id, label, url, enabled }. `id` is the StubHub event id and is
+// the key used for per-event price history and alert state.
+const eventsCfg = JSON.parse(readFileSync(join(__dirname, "events.json"), "utf8"));
+export const EVENTS = eventsCfg.events || [];
+// The ones we actually scrape/alert/report on (enabled !== false).
+export const ENABLED_EVENTS = EVENTS.filter((e) => e.enabled !== false);
 
 // Dedicated Chrome profile so we don't collide with your everyday Chrome.
 // Seeded once via `npm run login`, reused on every scheduled run.

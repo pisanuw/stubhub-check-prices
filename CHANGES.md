@@ -27,3 +27,9 @@ Format: `YYYY-MM-DD [type] description` (max 200 chars). Types: decision, plan, 
 2026-06-15 [code] Bumped GitHub Actions to clear Node 20 deprecation: checkout@v4->v5, setup-node@v4->v5, node-version 22->24 across check-prices/heartbeat/smoke. upload-artifact still @v4 (no v5 released; will keep warning).
 
 2026-06-16 [code] Alerting (scrape.mjs/check-prices) now ignores 8 classes (Category 1-4, Upper 300/Middle 200/Lower 100-Level, Lower Charter) + their sections via ALERTS.ignoreClasses; buildCategories tags each cat with parent class (cls). Heartbeat unaffected (reads Supabase directly). Only Hospitality + watch products alert now.
+
+2026-06-20 [scope] Multi-event support. URLs moved to events.json (id/label/url/enabled). scrape/heartbeat/query loop/scope by enabled events; alert state + history keyed per event_id. Switched to 7/6/2026 event 153020574; disabled 6/19 event 153020544.
+
+2026-06-20 [code] config.mjs loads events.json (EVENTS/ENABLED_EVENTS); store.mjs lazy env + per-event state key + latestByClass/runCount helpers; heartbeat/query read base table per-event. seed-login uses first enabled event.
+
+2026-06-20 [decision] DB: schema already had event_id; sql/001_multi_event.sql makes views event-aware (+event_id), adds indexes, deletes old June data + legacy alert-state key. Pending apply via psql (need Postgres connection string for Ranked Voting).

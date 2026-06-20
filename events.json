@@ -1,0 +1,17 @@
+{
+  "_comment": "Events (web sites) to monitor. Edit this file to add/remove/switch events; no code change needed. `id` is the StubHub event id (the number in the /event/<id>/ URL) and is the key used for per-event price history and alert state. Set `enabled` to false to stop monitoring an event without deleting its config.",
+  "events": [
+    {
+      "id": "153020574",
+      "label": "World Cup Seattle - Jul 6, 2026 (Round of 32)",
+      "url": "https://www.stubhub.com/world-cup-seattle-tickets-7-6-2026/event/153020574/?quantity=2",
+      "enabled": true
+    },
+    {
+      "id": "153020544",
+      "label": "World Cup Seattle - Jun 19, 2026 (US v Australia, Group D)",
+      "url": "https://www.stubhub.com/world-cup-seattle-tickets-6-19-2026/event/153020544/?quantity=2",
+      "enabled": false
+    }
+  ]
+}

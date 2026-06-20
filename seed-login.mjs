@@ -8,7 +8,12 @@
 // press ENTER here to close.
 
 import { chromium } from "playwright";
-import { PROFILE_DIR, EVENT_URL } from "./config.mjs";
+import { PROFILE_DIR, ENABLED_EVENTS, EVENTS } from "./config.mjs";
+
+// Seed the profile against the first enabled event (any event on the same site
+// shares cookies/challenge state).
+const seedUrl = (ENABLED_EVENTS[0] || EVENTS[0])?.url;
+if (!seedUrl) { console.error("no events configured in events.json"); process.exit(1); }
 
 const ctx = await chromium.launchPersistentContext(PROFILE_DIR, {
   channel: "chrome",
@@ -18,7 +23,7 @@ const ctx = await chromium.launchPersistentContext(PROFILE_DIR, {
 
 const page = ctx.pages()[0] ?? (await ctx.newPage());
 console.log("Opening the event page. Sign in if you want, wait for prices to load.");
-await page.goto(EVENT_URL, { waitUntil: "domcontentloaded" });
+await page.goto(seedUrl, { waitUntil: "domcontentloaded" });
 
 console.log("\nWhen the page looks good, press ENTER here to save the profile and close...");
 await new Promise((resolve) => {

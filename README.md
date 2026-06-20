@@ -1,10 +1,13 @@
 # StubHub price checker
 
-Fragile, single-event price tracker for **US vs Australia, World Cup Group D
-(Match 32), Lumen Field, 2026-06-19** (StubHub event `153020544`).
+Fragile price tracker for one or more StubHub events. The events to monitor live
+in [events.json](events.json) (edit that file to add, remove, or switch events —
+no code change needed). Currently watching **World Cup Seattle, 2026-07-06**
+(event `153020574`).
 
-Checks the event page every 15 minutes and logs the cheapest price per ticket
-class to CSV.
+Checks each enabled event page every 15 minutes and logs the cheapest price per
+ticket class. Price history and alert state are kept per event (keyed by the
+StubHub event id).
 
 ## How it works
 
@@ -14,10 +17,14 @@ a complete JSON blob in `<script id="index-data">`. We load the page with real
 Chrome (Playwright, `channel: 'chrome'`) and parse that blob. No login needed —
 prices are public.
 
-- `config.mjs` — event URL, paths, headless flag, watch `FILTER`, and `ALERTS`.
+- `events.json` — the list of events (web sites) to monitor: `{ id, label, url,
+  enabled }`. `id` is the StubHub event id and is the per-event data/state key.
+- `config.mjs` — loads `events.json`, plus paths, headless flag, watch `FILTER`,
+  and `ALERTS`.
 - `parse.mjs` — pulls per-class and per-section min prices out of the HTML, and
   builds the flat "category" list used for alerting.
-- `scrape.mjs` — one run: load page, parse, append CSV rows, evaluate alerts, log.
+- `scrape.mjs` — one run: loop enabled events; per event load page, parse, append
+  history rows, evaluate alerts (per-event state), log.
 - `alert.mjs` — stateful alert engine (20% drop vs previous, new category).
 - `notify.mjs` — sends email via Resend.
 - `seed-login.mjs` — optional one-time headed login into the dedicated profile.
@@ -78,26 +85,35 @@ gh workflow run heartbeat.yml      # send one now
 
 ### Querying the data (Supabase)
 
-Two convenience views (project *Ranked Voting*):
+Two event-aware convenience views (project *Ranked Voting*); both carry an
+`event_id` column so each event's data is separate:
 
-- `stubhub_latest_prices` — latest price per ticket class.
-- `stubhub_daily_low` — daily min/max/avg per class (good for charting a trend).
+- `stubhub_latest_prices` — latest price per ticket class, per event.
+- `stubhub_daily_low` — daily min/max/avg per class, per event (good for charting).
 
 ```sql
-select * from stubhub_latest_prices order by min_price;
-select * from stubhub_daily_low where class_name = 'Hospitality' order by day_pt;
+select * from stubhub_latest_prices where event_id = '153020574' order by min_price;
+select * from stubhub_daily_low where event_id = '153020574' and class_name = 'Hospitality' order by day_pt;
 ```
 
 From the terminal, [query.mjs](query.mjs) wraps the common reads (uses
-`STUBHUB_SUPABASE_URL` / `STUBHUB_SUPABASE_KEY` from `.env`):
+`STUBHUB_SUPABASE_URL` / `STUBHUB_SUPABASE_KEY` from `.env`). Every command is
+scoped to one event — the first enabled event by default, or pass `--event <id>`
+(or `--event all`):
 
 ```bash
-npm run query latest          # cheapest per class right now
+npm run query events          # list configured events
+npm run query latest          # cheapest per class right now (default event)
 npm run query daily Hospitality   # daily low/avg/max for one class
 npm run query runs 24         # how many checks ran in last 24h + last time
 npm run query watch           # are Champions Club / Trophy Lounge / FIFA Pavilion listed yet
+npm run query latest --event all              # all configured events
+npm run query latest --event 153020544        # a specific event
 npm run query raw "stubhub_price_snapshots?select=*&limit=5"   # any PostgREST query
 ```
+
+> The event-aware views require the `sql/001_multi_event.sql` migration to have
+> been applied (it also adds indexes and removes the old June 19 event's data).
 
 > Note: this project uses `STUBHUB_SUPABASE_*` env vars (not the bare
 > `SUPABASE_*`) so a shared `.env` pointing at another Supabase project can't
@@ -153,7 +169,8 @@ section / listing-note text.
 - **First run** only establishes a baseline — no email.
 - **De-dup:** a drop emails once, then latches; it re-fires only on a new lower
   low (another 20% below the alerted price) and re-arms after the price recovers
-  ≥10%. State lives in `alert-state.json` (delete it to reset the baseline).
+  ≥10%. State is per event: locally `alert-state.<eventId>.json`, in Supabase the
+  `stubhub_app_state` row keyed `alert-state:<eventId>` (delete to reset baseline).
 - All triggers from one run are batched into a single email.
 - **Noise control:** `ALERTS.kinds` selects which category granularities alert.
   Section-level is the chattiest (one listing can swing a section min >20%). For

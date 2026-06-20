@@ -1,11 +1,14 @@
 # Briefing
 
-- Purpose: Track StubHub ticket prices for one event (US vs Australia, World Cup
-  Group D Match 32, Lumen Field, 2026-06-19; StubHub event 153020544), checking
-  every 15 minutes and logging cheapest price per ticket class.
-- Current scope: Personal, single-event, intentionally fragile. Playwright loads
-  the page; prices parsed from the server-rendered `<script id="index-data">`
-  JSON blob. Email alerts (Resend) on >=20% price drop vs previous reading OR a
+- Purpose: Track StubHub ticket prices for one or more events, checking every 15
+  minutes and logging cheapest price per ticket class. The events to monitor live
+  in events.json (id/label/url/enabled). Currently watching ONLY World Cup Seattle
+  2026-07-06 (event 153020574); the old 2026-06-19 event 153020544 is disabled and
+  its data deleted from Supabase.
+- Current scope: Personal, multi-event, intentionally fragile. Playwright loads
+  each enabled event page; prices parsed from the server-rendered
+  `<script id="index-data">` JSON blob. Price history + alert state are per event
+  (keyed by StubHub event id). Email alerts (Resend) on >=20% price drop vs previous reading OR a
   category appearing for the first time. Alerting scope is now narrowed:
   ALERTS.ignoreClasses excludes 8 classes (Category 1-4, Upper 300-Level,
   Middle 200-Level, Lower 100-Level, Lower Charter) and their sections, so only
@@ -13,8 +16,11 @@
   Lounge, FIFA Pavilion) trigger alerts. The daily heartbeat is unaffected and
   still reports every class.
 - Deployment: GitHub Actions (public repo pisanuw/stubhub-check-prices) cron
-  */15; state + per-class history in Supabase project "Ranked Voting" (tables
-  stubhub_app_state, stubhub_price_snapshots). CHROME_CHANNEL=chromium in CI.
+  (check-prices.yml now cron "17 * * * *"); state + per-class history in Supabase
+  project "Ranked Voting" (table stubhub_price_snapshots has event_id;
+  stubhub_app_state holds per-event alert state under key alert-state:<eventId>).
+  Event-aware views stubhub_latest_prices / stubhub_daily_low (both expose
+  event_id) + indexes via sql/001_multi_event.sql. CHROME_CHANNEL=chromium in CI.
   Local launchd agent decommissioned (cloud is source of truth).
 - Key decisions:
   - Data source = embedded `index-data` JSON island (DOM is WebGL canvas +
@@ -29,6 +35,10 @@
     8 in ALERTS.ignoreClasses (only Hospitality + watch products alert); re-send
     = once until reset (re-arm on +10% recovery or new lower low). Heartbeat
     ignores the exclude list (reports all classes). Resend email noreply@pisan.me
-    -> yusuf.pisan@gmail.com (from .env). State in alert-state.json.
-- Non-goals: Auto-purchasing tickets; multi-event support; robustness against
-  StubHub redesigns; full per-listing detail beyond the ~40 the page embeds.
+    -> yusuf.pisan@gmail.com (from .env). State keyed per event.
+  - Events live in events.json (config file), NOT in the DB, so they are easy to
+    edit. scrape/heartbeat/query all loop/scope by enabled events. Heartbeat and
+    query read per-event off the base table (no view dependency); only `query
+    daily` uses the event-aware view.
+- Non-goals: Auto-purchasing tickets; robustness against StubHub redesigns; full
+  per-listing detail beyond the ~40 the page embeds. (Multi-event is now in scope.)
