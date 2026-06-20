@@ -33,3 +33,5 @@ Format: `YYYY-MM-DD [type] description` (max 200 chars). Types: decision, plan, 
 2026-06-20 [code] config.mjs loads events.json (EVENTS/ENABLED_EVENTS); store.mjs lazy env + per-event state key + latestByClass/runCount helpers; heartbeat/query read base table per-event. seed-login uses first enabled event.
 
 2026-06-20 [decision] DB: schema already had event_id; sql/001_multi_event.sql makes views event-aware (+event_id), adds indexes, deletes old June data + legacy alert-state key. Pending apply via psql (need Postgres connection string for Ranked Voting).
+
+2026-06-20 [code] Applied sql/001_multi_event.sql to Ranked Voting (via session pooler; direct db.<ref>:5432 refuses, PostgREST up). Event-aware views (+event_id), 2 indexes, deleted 2737 June rows + legacy alert-state key. Verified cloud run wrote 7 July rows + alert-state:153020574 baseline.
